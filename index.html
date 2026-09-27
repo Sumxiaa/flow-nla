@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142b3a">
+  <!-- Project metadata is maintained in project.json. Run python3 update_metadata.py after edits. -->
+  <!-- metadata:head:start -->
+  <title>Flow-NLA — Understanding Confabulation and Rethinking Reconstruction in Activation Explanations</title>
+  <meta name="description" content="Flow-NLA replaces point reconstruction with explanation-conditioned denoising, retaining substantial utility gains while curbing the growth of confabulation and writing defects.">
+  <meta name="author" content="Gert Lek, Zixuan Xia, Pin-Yu Chen, Lydia Chen">
+  <link rel="canonical" href="https://sumxiaa.github.io/flow-nla/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Flow-NLA">
+  <meta property="og:title" content="Flow-NLA — Understanding Confabulation and Rethinking Reconstruction in Activation Explanations">
+  <meta property="og:description" content="Flow-NLA replaces point reconstruction with explanation-conditioned denoising, retaining substantial utility gains while curbing the growth of confabulation and writing defects.">
+  <meta property="og:url" content="https://sumxiaa.github.io/flow-nla/">
+  <meta property="og:image" content="https://sumxiaa.github.io/flow-nla/assets/figures/trajectories.png">
+  <meta property="og:image:alt" content="Paper figure comparing utility, source support, and writing defects for Flow-NLA and point NLA.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="citation_title" content="Understanding Confabulation and Rethinking Reconstruction in Activation Explanations">
+  <meta name="citation_author" content="Gert Lek">
+  <meta name="citation_author_institution" content="Université de Neuchâtel">
+  <meta name="citation_author" content="Zixuan Xia">
+  <meta name="citation_author_institution" content="Universität Bern">
+  <meta name="citation_author" content="Pin-Yu Chen">
+  <meta name="citation_author_institution" content="International Business Machines (IBM)">
+  <meta name="citation_author" content="Lydia Chen">
+  <meta name="citation_author_institution" content="Université de Neuchâtel">
+  <!-- metadata:head:end -->
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="assets/vendor/katex/katex.min.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="wordmark" href="#top" aria-label="Flow-NLA home"><span class="brand-mark" aria-hidden="true">f</span> Flow-NLA</a>
+      <button class="menu-toggle" aria-expanded="false" aria-controls="navigation" hidden>Menu <span aria-hidden="true">☰</span></button>
+      <nav id="navigation" aria-label="Main navigation">
+        <a href="#motivation">Motivation</a><a href="#evaluation">Evaluation</a><a href="#method">Method</a><a href="#results">Results</a><a href="#resources">Resources</a>
+      </nav>
+    </div>
+  </header>
+  <main id="main">
+    <section class="hero container" id="top" aria-labelledby="hero-title">
+      <p class="eyebrow">Natural-language activation explanations</p>
+      <p class="hero-brand"><em>Flow</em><span>-NLA</span></p>
+      <h1 id="hero-title">Rethinking reconstruction<br>for activation explanations.</h1>
+      <!-- metadata:identity:start -->
+  <p class="paper-title">Understanding Confabulation and Rethinking Reconstruction in Activation Explanations</p>
+      <p class="authors"><span class="author">Gert Lek<sup aria-label="affiliation 1">1</sup></span>, <span class="author">Zixuan Xia<sup aria-label="affiliation 2">2</sup></span>, <span class="author">Pin-Yu Chen<sup aria-label="affiliation 3">3</sup></span>, <span class="author">Lydia Chen<sup aria-label="affiliation 1">1</sup></span></p>
+      <p class="affiliations"><span class="affiliation"><sup>1</sup> Université de Neuchâtel</span> · <span class="affiliation"><sup>2</sup> Universität Bern</span> · <span class="affiliation"><sup>3</sup> International Business Machines (IBM)</span></p>
+  <!-- metadata:identity:end -->
+      <!-- metadata:hero-links:start -->
+  <div class="resource-buttons" aria-label="Project resources"><span class="button unavailable" aria-disabled="true" aria-label="Paper: coming soon">Paper<small>Coming soon</small></span><a class="button secondary" href="https://github.com/Sumxiaa/flow-nla">Code<span aria-hidden="true">↗</span></a><a class="button secondary" href="https://github.com/Gertlek/nla-evaluations">NLA Evaluations<span aria-hidden="true">↗</span></a><a class="button secondary" href="https://transformer-circuits.pub/2026/nla/">Original NLA<span aria-hidden="true">↗</span></a></div>
+  <!-- metadata:hero-links:end -->
+      <div class="tldr"><span class="eyebrow">The short version</span><p>Point-reconstruction training makes NLA explanations more useful, but also more confabulated and less well written. <strong>Flow-NLA replaces point reconstruction with distributional denoising feedback</strong>, retaining substantial utility gains while curbing the growth of confabulation and writing defects.</p></div>
+      <a class="read-link" href="#motivation">Explore the paper <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <section class="section container" id="motivation" aria-labelledby="motivation-title">
+      <div class="section-heading"><p class="eyebrow"><span>01</span> Motivation</p><h2 id="motivation-title">From an activation<br>to an explanation.</h2></div>
+      <div class="prose"><p>A Natural Language Autoencoder (NLA) learns to describe a model’s internal activation in ordinary language. A <strong>verbalizer</strong> writes an explanation; a <strong>reconstructor</strong> tries to recover the activation from that text.</p></div>
+      <div class="pipeline" aria-label="NLA pipeline: activation h to verbalizer to explanation z to reconstructor to reconstructed activation h hat">
+        <div class="pipeline-end"><span class="math-symbol">h</span><span>Activation</span></div><span class="pipeline-arrow" aria-hidden="true">→</span>
+        <div class="pipeline-box">Verbalizer</div><span class="pipeline-arrow" aria-hidden="true">→</span>
+        <div class="pipeline-text"><span class="math-symbol">z</span><span>Natural-language<br>explanation</span></div><span class="pipeline-arrow" aria-hidden="true">→</span>
+        <div class="pipeline-box">Reconstructor</div><span class="pipeline-arrow" aria-hidden="true">→</span>
+        <div class="pipeline-end"><span class="math-symbol">ĥ</span><span>Reconstructed<br>activation</span></div>
+      </div>
+      <div class="pipeline-feedback">Reconstruction quality supplies the verbalizer’s learning signal.</div>
+      <div class="prose"><p>After supervised initialization, better reconstruction provides an unsupervised reward for the explanation. The target language model stays frozen. But what does that reward encourage the explanation to say?</p><p class="small">Background: <a data-link="originalNlaUrl" href="https://transformer-circuits.pub/2026/nla/">the original NLA work <span aria-hidden="true">↗</span></a></p></div>
+
+      <div class="subsection-heading"><p class="eyebrow">The empirical problem</p><h2>Better reconstruction does not<br>necessarily mean better explanations.</h2></div>
+      <div class="prose"><p>In the point-reconstruction runs studied here, reconstruction improves alongside recoverable, instance-specific information. Yet <strong>contextual confabulation and writing defects also increase.</strong> This is an observed training pattern; whether the coupling is necessary remains open.</p></div>
+      <figure class="paper-figure">
+        <div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/training-trends.png" target="_blank" rel="noopener" aria-label="Open reconstruction and confabulation training figure at full resolution"><img src="assets/figures/training-trends.webp" width="2800" height="1120" loading="lazy" decoding="async" alt="Across Qwen, Gemma, and Apertus, solid reconstruction FVE curves rise during training while dashed confabulation-index curves also rise above their initialization baseline."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p>
+        <figcaption><span class="figure-number">Figure 1</span> Better reconstruction accompanies more confabulation and writing defects. The index averages assertion risk and writing defects relative to supervised initialization (index = 1). Shading: 95% bootstrap intervals. <span class="figure-hint">Select any figure to view it full size.</span></figcaption>
+      </figure>
+      <div class="split-feature">
+        <div><p class="eyebrow">Useful information still increases</p><h3>More specific.<br>Not necessarily more supported.</h3><p>Hard-negative separation compares an explanation with one from a closely related source that differs in the answer-relevant fact. Both training objectives increasingly separate the two.</p><p class="small">A larger separation can reflect useful matched explanations, misleading mismatches, or both. It is not an accuracy score.</p></div>
+        <figure class="paper-figure compact"><div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/hard-negative.png" target="_blank" rel="noopener" aria-label="Open hard-negative separation figure at full resolution"><img src="assets/figures/hard-negative.webp" width="2800" height="1955" loading="lazy" decoding="async" alt="Hard-negative separation rises early and plateaus across the three model families, for both point NLA and Flow-NLA."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p><figcaption><span class="figure-number">Figure 2</span> Hard-negative separation over 12 classification tasks; higher is better. Solid: point NLA. Dashed: Flow-NLA.</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="section evaluation-section" id="evaluation" aria-labelledby="evaluation-title">
+      <div class="container">
+        <div class="section-heading"><p class="eyebrow"><span>02</span> Evaluation</p><h2 id="evaluation-title">Three questions.<br>Three views of explanation quality.</h2></div>
+        <p class="section-intro">Information, source support, and writing are evaluated separately. Each judge receives only the context its task requires.</p>
+        <div class="evaluation-grid">
+          <article class="evaluation-card utility"><span class="card-index">A</span><p class="eyebrow">Utility</p><h3>What can a reader recover?</h3><p class="judge-input">Sees: explanation + task query</p><ul><li><strong>Classification:</strong> accuracy across 12 source-property tasks.</li><li><strong>Suffix selection:</strong> select the true 32-token continuation from ten candidates.</li><li><strong>Response behavior:</strong> answer, refusal, or clarification; macro-F1.</li><li><strong>Hard-negative separation:</strong> correct-answer log-probability ratio for matched versus mismatched explanations.</li></ul><div class="card-note">The source and activation are withheld.</div></article>
+          <article class="evaluation-card support"><span class="card-index">B</span><p class="eyebrow">Source support</p><h3>Are the claims supported?</h3><p class="judge-input">Sees: source + explanation</p><p>Atomic claims are labeled <strong>supported</strong>, <strong>contradicted</strong>, or <strong>unsupported</strong>.</p><ul><li><strong>Assertion Risk:</strong> proportion of assessed assertions that are unsupported or contradicted.</li><li><strong>Confabulated Token Coverage:</strong> proportion of explanation tokens covered by those claims.</li></ul><div class="card-note">Future-text predictions and hidden-computation claims are not assessed and are excluded from both metrics.</div></article>
+          <article class="evaluation-card writing"><span class="card-index">C</span><p class="eyebrow">Writing quality</p><h3>Is the explanation well written?</h3><p class="judge-input">Sees: explanation only</p><ul><li><strong>Clarity:</strong> unclear wording, malformed or unfinished sentences.</li><li><strong>Coherence:</strong> statements that conflict within the explanation.</li><li><strong>Economy:</strong> avoidable repetition or filler.</li></ul><div class="card-note">Distinct defects per explanation, with exact evidence spans.</div></article>
+        </div>
+        <p class="section-footnote">All three dimensions use a separate judge LLM, DeepSeek V4.1 Flash. Source support measures contextual evidence; it does not establish mechanistic faithfulness. Adapted from the paper’s evaluation overview.</p>
+      </div>
+    </section>
+
+    <section class="section insight-section" id="insight" aria-labelledby="insight-title">
+      <div class="container">
+        <div class="section-heading"><p class="eyebrow"><span>03</span> The information blind spot</p><h2 id="insight-title">Point reconstruction only sees<br>the conditional mean.</h2></div>
+        <div class="prose"><p>An explanation can narrow the set of possible activations without moving their mean. Under NLA’s normalized squared-error objective, <strong>that information cannot improve the optimal point-reconstruction reward.</strong></p></div>
+        <div class="equation-panel"><p class="eyebrow">Optimal point reconstruction · unit-norm activations and predictions</p><div class="equation" data-equation="point">min E[‖H − u‖² | Z = z] = 2 − 2‖μᵩ(z)‖, with ‖u‖ = 1</div><p>Here <span class="inline-math" data-equation="mean">μᵩ(z) = Eᵩ[H | Z = z]</span>. Only the conditional mean determines this optimal expected loss.</p></div>
+        <figure class="paper-figure conceptual"><div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/same-mean.png" target="_blank" rel="noopener" aria-label="Open same-mean denoising illustration at full resolution"><img src="assets/figures/same-mean.webp" width="2800" height="875" loading="lazy" decoding="async" alt="Four equally likely unit directions have mean zero. A horizontal explanation removes the vertical pair but keeps mean zero. With a noisy observation, removing the upward candidate shifts the denoising estimate toward the true rightward activation."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p><figcaption><span class="figure-number">Figure 3</span> The horizontal explanation preserves the zero mean, so optimal point loss remains 2. Once a noisy activation is observed, the same explanation excludes a plausible candidate and lowers denoising error.</figcaption></figure>
+        <ol class="intuition-steps"><li><span>01</span><h3>Same mean</h3><p>The explanation rules out vertical directions. The remaining pair still has mean zero.</p></li><li><span>02</span><h3>Partial observation</h3><p>A noisy activation leaves the true and upward candidates similarly plausible.</p></li><li><span>03</span><h3>Useful denoising</h3><p>The explanation removes the upward candidate. The estimate moves toward the true activation.</p></li></ol>
+      </div>
+    </section>
+
+    <section class="section container" id="method" aria-labelledby="method-title">
+      <div class="section-heading"><p class="eyebrow"><span>04</span> The method</p><h2 id="method-title">Flow-NLA.<br>Reconstruction beyond the mean.</h2></div>
+      <div class="prose"><p>Instead of predicting one activation from an explanation, Flow-NLA models <strong>the distribution of activations compatible with it</strong>. The explanation earns reward when it helps denoise the observed activation across noise levels.</p></div>
+      <figure class="paper-figure architecture"><div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/architecture.svg" target="_blank" rel="noopener" aria-label="Open Flow-NLA architecture figure at full resolution"><img src="assets/figures/architecture.webp" width="1894" height="702" loading="lazy" decoding="async" alt="Flow-NLA sends a frozen model activation to a verbalizer to generate explanation z and also adds Gaussian noise to form x_t. A flow reconstructor conditioned on x_t, time, and z predicts denoising; a likelihood-bound-derived reward trains the verbalizer."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p><figcaption><span class="figure-number">Figure 4</span> Flow-NLA training. The frozen target supplies the activation. Conditional denoising trains the reconstructor and provides feedback for the verbalizer.</figcaption></figure>
+      <div class="method-steps"><article><span class="step-label">01 / Explain</span><h3>Write from the activation.</h3><p>The verbalizer maps the activation <i>h</i> to an explanation <i>z</i>.</p></article><article><span class="step-label">02 / Denoise</span><h3>Recover from partial evidence.</h3><p>Gaussian noise corrupts the standardized activation <i>x</i>. The reconstructor predicts a velocity from (<i>x</i><sub>t</sub>, <i>t</i>, <i>z</i>), which determines a noise prediction.</p></article><article><span class="step-label">03 / Reward</span><h3>Credit informative explanations.</h3><p>Integrated denoising error defines a likelihood-bound-derived reward used in the verbalizer’s group-relative update.</p></article></div>
+      <details class="technical-details"><summary>The denoising objective, in two equations <span aria-hidden="true">+</span></summary><div class="details-body"><p>After fixed coordinate standardization, add Gaussian noise along a variance-preserving path:</p><div class="equation" data-equation="noise">xₜ = aₜx + bₜε, vₜ = aₜε − bₜx, ε ∼ N(0, I), aₜ² + bₜ² = 1.</div><p>The flow reconstructor predicts the velocity. Its implied noise prediction is <span class="inline-math" data-equation="prediction">ε̂θ = bₜxₜ + aₜfθ(xₜ, t, z)</span>. The verbalizer’s reward is:</p><div class="equation" data-equation="reward">Rθ(h,z) = −½ ∫₋₈⁸ Eε ‖ε − ε̂θ(xλ, λ, z)‖² dλ.</div><p>Here <span class="inline-math" data-equation="snr">λ = log(aₜ² / bₜ²)</span> indexes noise levels. The reward is the explanation-dependent term of a diffusion likelihood bound, <span class="inline-math" data-equation="bound">log pθ(h|z) ≥ Rθ(h,z) − c(h)</span>, where <i>c(h)</i> is independent of the explanation. Numerical integration and sampled noise approximate this term.</p></div></details>
+    </section>
+
+    <section class="section results-section" id="results" aria-labelledby="results-title">
+      <div class="container">
+        <div class="section-heading"><p class="eyebrow"><span>05</span> Results</p><h2 id="results-title">Retain utility.<br>Limit the growth of confabulation.</h2></div>
+        <p class="section-intro">Across <strong>Qwen2.5-7B-Instruct</strong>, <strong>Gemma-3-12B-it</strong>, and <strong>Apertus-v1.5-8B</strong>, Flow-NLA follows similar utility trajectories to point-reconstruction NLA, with substantially less growth in confabulation and writing defects.</p>
+        <div class="result-callouts"><article><p class="eyebrow">Utility</p><h3>Similar gains</h3><p>Recoverable information improves under both training objectives.</p></article><article><p class="eyebrow">Source support</p><h3>Near initialization</h3><p>Flow-NLA’s assertion risk and token coverage stay near or below initialization, versus increases of up to <strong>11 percentage points</strong> for point NLA.</p></article><article><p class="eyebrow">Writing defects</p><h3>+0.23–0.32</h3><p>Additional defects per explanation with Flow-NLA, versus <strong>+0.71–1.00</strong> for point NLA.</p></article></div>
+        <figure class="paper-figure result-summary"><div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/late-training.png" target="_blank" rel="noopener" aria-label="Open late-training comparison figure at full resolution"><img src="assets/figures/late-training.webp" width="2800" height="474" loading="lazy" decoding="async" alt="Late-training dumbbell comparison for Qwen, Gemma, and Apertus: Flow-NLA open squares are close to NLA filled circles in mean utility, and lower in assertion risk, confabulated token coverage, and writing defects."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p><figcaption><span class="figure-number">Figure 5</span> Late-training changes from each method’s supervised initialization, averaged over the second half of the training range shared by both methods. Utility is the mean of classification, suffix selection, and response behavior. Filled circles: point NLA. Open squares: Flow-NLA. Percentage points for the first three panels; defects per explanation for the fourth.</figcaption></figure>
+        <div class="subsection-heading smaller"><h3>The full training picture</h3><p>Utility improves under both objectives. Source support and writing quality reveal a different trajectory.</p></div>
+        <figure class="paper-figure"><div class="figure-viewport" tabindex="0" role="region" aria-label="Paper figure; scroll horizontally on small screens"><a class="figure-link" href="assets/figures/trajectories.png" target="_blank" rel="noopener" aria-label="Open six-panel training trajectories at full resolution"><img src="assets/figures/trajectories.webp" width="3000" height="1586" loading="lazy" decoding="async" alt="Six training panels show changes in classification accuracy, suffix accuracy, response-behavior macro-F1, assertion risk, confabulated token coverage, and writing defects. Flow-NLA dashed curves retain utility gains with smaller confabulation and writing-defect increases."></a></div><p class="mobile-figure-hint">Swipe to explore the figure ↔ · Select to open full size</p><figcaption><span class="figure-number">Figure 6</span> Changes from supervised initialization. Markers show raw measurements, curves show three-checkpoint means, and shading shows pointwise 95% bootstrap intervals. Higher is better for utility; lower is better for confabulation and writing defects.</figcaption></figure>
+        <details class="technical-details"><summary>Selected-checkpoint scores across the three models <span aria-hidden="true">+</span></summary><div class="details-body"><p>Absolute scores from the paper’s appendix. Each run uses its highest mean utility checkpoint among updates 1300–1600. These are distinct from the averaged changes above.</p><div class="table-scroll" tabindex="0" role="region" aria-label="Scrollable selected-checkpoint results"><table><caption class="sr-only">Absolute selected-checkpoint scores. All columns are percentages except writing defects.</caption><thead><tr><th scope="col">Target / method</th><th scope="col">Class. ↑</th><th scope="col">Suffix ↑</th><th scope="col">Behavior ↑</th><th scope="col">Risk ↓</th><th scope="col">Coverage ↓</th><th scope="col">Defects ↓</th></tr></thead><tbody>
+          <tr><th scope="row">Qwen · Point</th><td>79.7</td><td>97.6</td><td>74.9</td><td>83.7</td><td>68.3</td><td>1.63</td></tr><tr class="flow-row"><th scope="row">Qwen · Flow</th><td>80.3</td><td>96.6</td><td>72.9</td><td>71.9</td><td>54.7</td><td>0.99</td></tr>
+          <tr><th scope="row">Gemma · Point</th><td>84.2</td><td>96.2</td><td>82.4</td><td>77.8</td><td>44.2</td><td>1.38</td></tr><tr class="flow-row"><th scope="row">Gemma · Flow</th><td>83.8</td><td>96.2</td><td>84.8</td><td>60.8</td><td>33.8</td><td>0.89</td></tr>
+          <tr><th scope="row">Apertus · Point</th><td>77.5</td><td>96.0</td><td>73.6</td><td>81.3</td><td>41.5</td><td>1.50</td></tr><tr class="flow-row"><th scope="row">Apertus · Flow</th><td>78.4</td><td>95.4</td><td>69.6</td><td>72.8</td><td>38.9</td><td>0.75</td></tr>
+        </tbody></table></div></div></details>
+        <aside class="limitations"><h3>What these results establish</h3><p>Richer reconstruction feedback is a promising direction, not a guarantee of source support or mechanistic faithfulness. The study covers the reported models, tasks, and training procedures, relies on automated judgments, and includes provider and inference differences that limit causal attribution to the objective alone. The distribution-identification analysis assumes optimal denoisers and a fixed verbalizer.</p></aside>
+      </div>
+    </section>
+
+    <section class="section container resources-section" id="resources" aria-labelledby="resources-title">
+      <div class="section-heading"><p class="eyebrow"><span>06</span> Resources</p><h2 id="resources-title">Read. Reproduce. Build on.</h2></div>
+      <!-- metadata:resources:start -->
+  <div class="resources-grid"><div class="resource-card unavailable" aria-disabled="true"><strong>Paper · Coming soon</strong><p>The paper and technical appendices will be available here.</p></div><a class="resource-card" href="https://github.com/Sumxiaa/flow-nla"><strong>Flow-NLA code</strong><p>Public Flow-NLA project repository.</p><span class="resource-arrow" aria-hidden="true">↗</span></a><a class="resource-card" href="https://github.com/Gertlek/nla-evaluations"><strong>NLA Evaluations</strong><p>Evaluation framework for activation explanations. Repository availability to be confirmed; the supplied URL currently returns 404.</p><span class="resource-arrow" aria-hidden="true">↗</span></a><a class="resource-card" href="https://transformer-circuits.pub/2026/nla/"><strong>Original NLA</strong><p>The original Natural Language Autoencoder work.</p><span class="resource-arrow" aria-hidden="true">↗</span></a><a class="resource-card" href="https://github.com/Sumxiaa"><strong>Sumxiaa on GitHub</strong><p>More projects and code.</p><span class="resource-arrow" aria-hidden="true">↗</span></a></div>
+  <!-- metadata:resources:end -->
+      <div class="citation-heading"><div><p class="eyebrow">Citation</p><h3>BibTeX</h3></div><button class="copy-button" id="copy-citation" hidden>Copy BibTeX <span aria-hidden="true">⧉</span></button></div>
+      <!-- metadata:citation:start -->
+  <p class="citation-note">Manuscript citation. Publication details will be added when available.</p><pre><code id="bibtex" data-citation-status="manuscript">@misc{lek_flow_nla,
+  title = {Understanding Confabulation and Rethinking Reconstruction in Activation Explanations},
+  author = {Lek, Gert and Xia, Zixuan and Chen, Pin-Yu and Chen, Lydia},
+  note = {Manuscript}
+}</code></pre>
+  <!-- metadata:citation:end -->
+      <p id="copy-status" class="copy-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><div><a class="wordmark" href="#top">Flow-NLA</a><!-- metadata:footer-title:start -->
+  <p>Understanding Confabulation and Rethinking Reconstruction in Activation Explanations</p>
+  <!-- metadata:footer-title:end --></div><!-- metadata:footer-link:start -->
+  <a href="https://github.com/Sumxiaa">Sumxiaa / GitHub <span aria-hidden="true">↗</span></a>
+  <!-- metadata:footer-link:end --></div></footer>
+</body>
+</html>
