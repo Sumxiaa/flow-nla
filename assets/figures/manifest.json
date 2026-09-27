@@ -1,0 +1,73 @@
+[
+  {
+    "stem": "training-trends",
+    "source": "figures/posthoc/nla_fve_combined_defects_risk_annotated.pdf",
+    "dimensions": [
+      2800,
+      1120
+    ],
+    "webpBytes": 94608,
+    "pngBytes": 241335,
+    "labels": "source intact; no scientific data regenerated"
+  },
+  {
+    "stem": "hard-negative",
+    "source": "figures/posthoc/hard_negative_separation_annotated.pdf",
+    "dimensions": [
+      2800,
+      1955
+    ],
+    "webpBytes": 146802,
+    "pngBytes": 274593,
+    "labels": "source intact; no scientific data regenerated"
+  },
+  {
+    "stem": "same-mean",
+    "source": "figures/equal_mean_reconstruction.pdf",
+    "dimensions": [
+      2800,
+      875
+    ],
+    "webpBytes": 118364,
+    "pngBytes": 202484,
+    "labels": "source intact; no scientific data regenerated"
+  },
+  {
+    "stem": "trajectories",
+    "source": "figures/six_panels_smoothed.pdf",
+    "dimensions": [
+      3000,
+      1586
+    ],
+    "webpBytes": 380724,
+    "pngBytes": 599079,
+    "labels": "source intact; no scientific data regenerated"
+  },
+  {
+    "stem": "late-training",
+    "source": "figures/flow_vs_nla_dumbbell_cropped.pdf",
+    "dimensions": [
+      2800,
+      474
+    ],
+    "webpBytes": 16516,
+    "pngBytes": 41696,
+    "labels": "source intact; no scientific data regenerated"
+  },
+  {
+    "stem": "architecture",
+    "source": "figures/introfig_flownla.drawio.svg",
+    "dimensions": [
+      947,
+      351
+    ],
+    "rasterDimensions": [
+      1894,
+      702
+    ],
+    "svgBytes": 611581,
+    "webpBytes": 118256,
+    "pngBytes": 167288,
+    "optimization": "Removed draw.io editor metadata/XML doctype/comment; forced light color-scheme. Visible geometry, embedded math assets, and labels unchanged."
+  }
+]
