@@ -1,0 +1,34 @@
+{
+  "projectTitle": "Flow-NLA",
+  "paperTitle": "Understanding Confabulation and Rethinking Reconstruction in Activation Explanations",
+  "description": "Flow-NLA replaces point reconstruction with explanation-conditioned denoising, retaining substantial utility gains while curbing the growth of confabulation and writing defects.",
+  "authors": [
+    {"name": "Gert Lek", "bibtexName": "Lek, Gert", "affiliations": [1]},
+    {"name": "Zixuan Xia", "bibtexName": "Xia, Zixuan", "affiliations": [2]},
+    {"name": "Pin-Yu Chen", "bibtexName": "Chen, Pin-Yu", "affiliations": [3]},
+    {"name": "Lydia Chen", "bibtexName": "Chen, Lydia", "affiliations": [1]}
+  ],
+  "affiliations": [
+    "Université de Neuchâtel",
+    "Universität Bern",
+    "International Business Machines (IBM)"
+  ],
+  "paperUrl": "https://arxiv.org/abs/2609.33702v1",
+  "paperPdfUrl": "https://arxiv.org/pdf/2609.33702v1",
+  "arxivId": "2609.33702",
+  "arxivVersion": "v1",
+  "arxivPrimaryClass": "cs.CL",
+  "paperDate": "2026/09/27",
+  "codeUrl": "https://github.com/Sumxiaa/flow-nla",
+  "githubProfile": "https://github.com/Sumxiaa",
+  "evaluationUrl": "https://github.com/Gertlek/nla-evaluations",
+  "originalNlaUrl": "https://transformer-circuits.pub/2026/nla/",
+  "siteUrl": "https://sumxiaa.github.io/flow-nla/",
+  "citationKey": "lek_flow_nla",
+  "citationYear": 2026,
+  "citationType": "misc",
+  "citationStatus": "preprint",
+  "pending": {
+    "evaluationUrl": "User-supplied URL returned HTTP 404 on 2026-09-27; check repository visibility or final URL before release."
+  }
+}
